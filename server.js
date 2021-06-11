@@ -1,24 +1,23 @@
 var express = require('express');
 const app = express();
-const PORT = 8087;
-
+const PORT = process.env.PORT || 8080;
 const SERVER_NAME = "INFO";
 let users = new Map();
-/*
-  Map<string, ServerResponse>
-*/
-let colors = new Map(); 
-/*
-  Map<string, []>
-*/
+let colors = new Map();
+app.post("/changeColor", function (req, res) {
+  req.on("data", data => {
+    parsed = JSON.parse(data);
+    const color = parsed.color;
+    const name = parse.name;
+    colors.set(name, color);
+    res.end("OK");
+  })
+});
 
-app.post("/register", function(req, res) {
-  let fullData = '';
-  req.on("data", data=>{
-    fullData += data;
-  }).on("end", ()=>{
-    let name = fullData.toString();
-    if(users.has(name) || name === SERVER_NAME){
+app.post("/register", function (req, res) {
+  req.on("data", data => {
+    let name = data.toString();
+    if (users.has(name) || name === SERVER_NAME) {
       res.end("ERROR");
       return;
     }
@@ -28,34 +27,30 @@ app.post("/register", function(req, res) {
   });
 });
 
-app.post("/postMessage", function(req, res){
-  let fullData = '';
-  req.on("data", data =>{
-    fullData +=data;
-  }).on("end", ()=>{
-    const parsed = JSON.parse(fullData);
+app.post("/postMessage", function (req, res) {
+  req.on("data", data => {
+    const parsed = JSON.parse(data);
     let mes = parsed.message;
     let name = parsed.name;
     let color = colors.get(name);
-
-    if(mes.startsWith("/color: ")){
+    if (mes.startsWith("/color: ")) {
       color = mes.substr("/color: ".length).split(',');
-      if(color.length < 3) {
+      if (color.length < 3) {
         res.end("ERROR");
         return;
       }
       color = color.map(item => parseInt(item));
-      for(let i=0; i<3; i++){
-        if(isNaN(color[i])){
+      for (let i = 0; i < 3; i++) {
+        if (isNaN(color[i])) {
           res.end("ERROR");
           return;
         }
       }
       colors.set(name, color);
     }
-    else if(mes.startsWith("/nickname: ")){
+    else if (mes.startsWith("/nickname: ")) {
       const newName = mes.substr("/nickname: ".length);
-      if(users.has(newName)){
+      if (users.has(newName)) {
         res.end("ERROR");
         return;
       }
@@ -66,83 +61,26 @@ app.post("/postMessage", function(req, res){
       colors.delete(name);
       colors.set(newName, temp);
     }
-  
-
-    users.forEach((value, key)=>{
-      if(value == null) return;
-      value.end(JSON.stringify({name: name, message: mes, color: color}));
+    users.forEach((value, key) => {
+      if (value == null) return;
+      value.end(JSON.stringify({ name: name, message: mes, color: color }));
     });
-
     res.end("OK");
   });
 });
 
-app.post("/getMessage", function(req, res){
+app.post("/getMessage", function (req, res) {
   let name = "";
-  let fullData = '';
-  req.on("data", (data)=>{
-    fullData += data;
-  }).on("end", ()=>{
-    name = fullData.toString();
+  req.on("data", (data) => {
+    name = data.toString();
     users.set(name, res);
-  })
-  .on("close", ()=>{
+  }).on("close", () => {
     users.delete(name);
   });
 });
 
-
 app.use(express.static('static'));
 
-app.listen(PORT, function(){
+app.listen(PORT, function () {
   console.log(`port is listening on http://localhost:${PORT}`);
 });
-
-// const node = require('node-static');
-// const server = new node.Server('.');
-
-// const url = require('url');
-// const http = require('http');
-// const PORT = 8080;
-// let onlineUsers = Object.create(null);
-
-// http.createServer(checkAllEndpoints).listen(PORT);
-// console.log(`Aby zobaczyć działanie wciśnij: http://localhost:${PORT}`);
-
-// function onSubscribeEvent(request, response) {
-//   let userId = Math.random();
-//   response.setHeader("Cache-Control", "no-cache, must-revalidate");
-//   response.setHeader('Content-Type', 'text/plain;charset=utf-8');
-//   onlineUsers[userId] = response;
-//   request.on('close', function() {
-//     delete onlineUsers[userId];
-//   });
-// }
-
-// function pushNewMessage(postedMessage) {
-//   for (let id in onlineUsers) {
-//     let responseWithUsers = onlineUsers[id];
-//     responseWithUsers.end(postedMessage);
-//   }
-//   onlineUsers = Object.create(null);
-// }
-
-// function checkAllEndpoints(request, response) {
-//   let parsedUrl = url.parse(request.url, true);
-//   if (parsedUrl.pathname == '/subscribe') {
-//     onSubscribeEvent(request, response);
-//     return;
-//   }
-//   if (parsedUrl.pathname == '/publish' && request.method == 'POST') {
-//     request.setEncoding('utf8');
-//     let postedMessage = '';
-//     request.on('data', function(dataPart) {
-//       postedMessage += dataPart;
-//     }).on('end', function() {
-//       pushNewMessage(postedMessage);
-//       response.end("ok");
-//     });
-//     return;
-//   }
-//   server.serve(request, response);
-// }

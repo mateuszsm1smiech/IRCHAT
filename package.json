@@ -1,27 +1,18 @@
 {
-  "name": "ChatApplication",
+  "name": "irc",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ZMizgalski/ChatApplication.git"
+    "start": "node ./server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ZMizgalski/ChatApplication/issues"
-  },
-  "homepage": "https://github.com/ZMizgalski/ChatApplication#readme",
   "dependencies": {
     "express": "^4.17.1",
     "http": "0.0.1-security",
-    "https": "^1.0.0",
     "node-static": "^0.7.11",
     "querystring": "^0.2.1",
     "socket.io": "^4.1.2",
